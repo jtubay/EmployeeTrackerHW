@@ -1,0 +1,23 @@
+{
+  "name": "employeetrackerhw",
+  "version": "1.0.0",
+  "description": "",
+  "main": "employeeTracker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jtubay/EmployeeTrackerHW.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jtubay/EmployeeTrackerHW/issues"
+  },
+  "homepage": "https://github.com/jtubay/EmployeeTrackerHW#readme",
+  "dependencies": {
+    "inquirer": "^7.0.0",
+    "mysql": "^2.17.1"
+  }
+}
