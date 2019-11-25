@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const consoleTable = require("console.table")
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -33,9 +34,7 @@ function start() {
       if (answer.initialAction === "View All Employees") {
         console.log("View All Employees");
         viewEmployees();
-      } else if (answer.initialAction === "View All Employees By Departmen") {
-        viewEmployeesByDep();
-      } else if (answer.initialAction === "Add Employee") {
+      }  else if (answer.initialAction === "Add Employee") {
         addEmployee();
       } else if (answer.initialAction === "Remove Employee") {
         removeEmployee();
@@ -48,7 +47,8 @@ function start() {
 }
 
 const viewEmployees = () => {
-  connection.query("SELECT * FROM employee", (err, results) => {
+  //connection.query("SELECT * FROM employee", (err, results) => {
+    connection.query("SELECT first_name, last_name, title, salary, name FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id", (err, results) => {
     if (err) throw err;
     inquirer
       .prompt([
@@ -68,7 +68,7 @@ const viewEmployees = () => {
         }
       ])
       .then(answer => {
-        console.log(answer.choice);
+        console.table(results);
         inquirer
           .prompt([
             {
@@ -101,9 +101,22 @@ const addEmployee = () => {
         name: "lastName",
         type: "input",
         message: "What is the employee's last name?"
+      },
+      {
+        name: "title",
+        type: "list",
+        message: "Pick the employee's title",
+        choices: ["Web Dev", "Manager"]
+      },
+      {
+        name: "department",
+        type: "list",
+        message: "Pick a department",
+        choices: ["Technology", "HR"]
       }
     ])
     .then(answer => {
+
       connection.query(
         "INSERT INTO employee SET ?",
         {
@@ -116,6 +129,13 @@ const addEmployee = () => {
           start();
         }
       );
+      connection.query(
+          "INSERT INTO role SET ?",
+          {
+            title: answer.title
+          }
+        
+      )
     });
 };
 
@@ -139,7 +159,6 @@ const removeEmployee = () => {
         }
       ])
       .then(answer => {
-        const id = [];
         for (let i = 0; i < results.length; i++) {
           let name = `${results[i].first_name} ${results[i].last_name}`;
           if (name === answer.choice) {
@@ -150,7 +169,8 @@ const removeEmployee = () => {
               },
               (err, res) => {
                 if (err) throw err;
-                console.log("Deleted");
+                console.log(`${name} has been fired!`);
+                console.log("-----------------------------------")
                 start();
               }
             );
@@ -159,3 +179,62 @@ const removeEmployee = () => {
       });
   });
 };
+
+const updatedEmployeeByRole = () => {
+    connection.query("SELECT first_name, last_name, title, salary, name FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id", (err, results) => {
+        if (err) throw err;
+        inquirer
+          .prompt([
+            {
+              name: "choice",
+              type: "rawlist",
+              choices: () => {
+                const choiceArray = [];
+                for (let i = 0; i < results.length; i++) {
+                  choiceArray.push(
+                    `${results[i].first_name} ${results[i].last_name}`
+                  );
+                }
+                return choiceArray;
+              },
+              message: "Which employee would you like to update?"
+            },
+            {
+                name: "title",
+                type: "list",
+                choices: ["Web Dev", "Manager"],
+                message: "Pick a new title"
+            }
+          ])
+          .then((answer) => {
+              console.log(answer.title)
+            for (let i = 0; i < results.length; i++) {
+                let name = `${results[i].first_name} ${results[i].last_name}`;
+                if (name === answer.choice) {
+                    connection.query(
+
+                        "UPDATE  role SET ? WHERE ?",
+                        [
+                            {
+                                title: answer.title
+                            },
+                            {
+                                id: results[i].id
+                            }
+                        ],
+                        (err) => {
+                            if(err) throw err
+                            start()
+                        }
+                    )
+                }
+            }
+
+          })
+        })
+}
+
+
+/*console.log(res[i].id + " | " + res[i].title + " | " + res[i].artist + " | " + res[i].genre);
+}
+console.log("-----------------------------------");*/
